@@ -12,13 +12,23 @@ from homeassistant.const import (
 )
 
 from .const import (
+    CONF_COMMANDS_SET,
+    CONF_CURRENT_POSITION_DP,
+    CONF_FAN_DPS_TYPE,
+    CONF_FAN_ORDERED_LIST,
+    CONF_FAN_SPEED_CONTROL,
+    CONF_FAN_SPEED_MAX,
+    CONF_FAN_SPEED_MIN,
     CONF_MAX_VALUE,
     CONF_MIN_VALUE,
     CONF_OPTIONS,
     CONF_OPTIONS_FRIENDLY,
     CONF_PASSIVE_ENTITY,
+    CONF_POSITIONING_MODE,
+    CONF_POSITION_INVERTED,
     CONF_RESTORE_ON_RECONNECT,
     CONF_SCALING,
+    CONF_SET_POSITION_DP,
     CONF_STEPSIZE_VALUE,
 )
 
@@ -214,6 +224,49 @@ DEVICE_PROFILES = {
                 CONF_PLATFORM: "sensor",
                 CONF_FRIENDLY_NAME: "Humidity",
                 CONF_UNIT_OF_MEASUREMENT: "%",
+            },
+        ],
+    },
+    "ceiling_fan_light": {
+        "name": "Ceiling Fan with Light (Grid Connect / Deta)",
+        "match_dps": {1, 9},
+        "entities": [
+            {
+                CONF_ID: 1,
+                CONF_PLATFORM: "fan",
+                CONF_FRIENDLY_NAME: "Fan",
+                CONF_FAN_SPEED_CONTROL: 1,
+                CONF_FAN_ORDERED_LIST: "1,2,3",
+                CONF_FAN_DPS_TYPE: "str",
+                CONF_FAN_SPEED_MIN: 1,
+                CONF_FAN_SPEED_MAX: 3,
+                CONF_RESTORE_ON_RECONNECT: False,
+                CONF_PASSIVE_ENTITY: False,
+            },
+            {
+                CONF_ID: 9,
+                CONF_PLATFORM: "light",
+                CONF_FRIENDLY_NAME: "Light",
+                CONF_RESTORE_ON_RECONNECT: False,
+                CONF_PASSIVE_ENTITY: False,
+            },
+        ],
+    },
+    "roller_blind_motor": {
+        "name": "Roller Blind / Curtain Motor",
+        "match_dps": {1, 2, 3, 7},
+        "entities": [
+            {
+                CONF_ID: 1,
+                CONF_PLATFORM: "cover",
+                CONF_FRIENDLY_NAME: "Blind",
+                CONF_COMMANDS_SET: "open_close_stop",
+                CONF_POSITIONING_MODE: "position",
+                CONF_CURRENT_POSITION_DP: 3,
+                CONF_SET_POSITION_DP: 2,
+                CONF_POSITION_INVERTED: False,
+                CONF_RESTORE_ON_RECONNECT: False,
+                CONF_PASSIVE_ENTITY: False,
             },
         ],
     },
