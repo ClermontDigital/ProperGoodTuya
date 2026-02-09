@@ -254,6 +254,7 @@ class TuyaDevice(pytuya.TuyaListener, pytuya.ContextualLogger):
             for entity in self._entities:
                 await entity.restore_state_when_connected()
 
+            @callback
             def _new_entity_handler(entity_id):
                 self.debug(
                     "New entity %s was added to %s",
@@ -348,22 +349,36 @@ class TuyaDevice(pytuya.TuyaListener, pytuya.ContextualLogger):
 
     def _dispatch_status(self):
         signal = f"localtuya_{self._dev_config_entry[CONF_DEVICE_ID]}"
-        async_dispatcher_send(self._hass, signal, self._status)
+        status_copy = self._status.copy()
+        self._hass.loop.call_soon_threadsafe(
+            async_dispatcher_send, self._hass, signal, status_copy
+        )
 
     @callback
     def disconnected(self):
         """Device disconnected."""
-        signal = f"localtuya_{self._dev_config_entry[CONF_DEVICE_ID]}"
-        async_dispatcher_send(self._hass, signal, None)
-        if self._unsub_interval is not None:
-            self._unsub_interval()
-            self._unsub_interval = None
+        # Perform connection cleanup immediately so that reconnection
+        # logic sees the device as disconnected right away.
         self._interface = None
 
         if self._connect_task is not None:
             self._connect_task.cancel()
             self._connect_task = None
+
         self.warning("Disconnected - waiting for discovery broadcast")
+
+        # Schedule HA event-loop operations thread-safely so that
+        # async_dispatcher_send is always called from the event loop thread.
+        self._hass.loop.call_soon_threadsafe(self._async_handle_disconnected)
+
+    @callback
+    def _async_handle_disconnected(self):
+        """Handle HA-specific disconnection cleanup on the event loop."""
+        signal = f"localtuya_{self._dev_config_entry[CONF_DEVICE_ID]}"
+        async_dispatcher_send(self._hass, signal, None)
+        if self._unsub_interval is not None:
+            self._unsub_interval()
+            self._unsub_interval = None
 
 
 class LocalTuyaEntity(RestoreEntity, pytuya.ContextualLogger):

@@ -1,37 +1,92 @@
 ![logo](https://github.com/rospogrigio/localtuya-homeassistant/blob/master/img/logo-small.png)
 
-A Home Assistant custom Integration for local handling of Tuya-based devices.
+# ProperGoodTuya
+
+A Home Assistant custom Integration for local handling of Tuya-based devices. Forked from [rospogrigio/localtuya](https://github.com/rospogrigio/localtuya) with active maintenance, bug fixes for latest Home Assistant versions, and expanded device support.
 
 This custom integration updates device status via pushing updates instead of polling, so status updates are fast (even when manually operated).
-The integration also supports the Tuya IoT Cloud APIs, for the retrieval of info and of the local_keys of the devices. 
+The integration also supports the Tuya IoT Cloud APIs, for the retrieval of info and of the local_keys of the devices.
 
 
 **NOTE: The Cloud API account configuration is not mandatory (LocalTuya can work also without it) but is strongly suggested for easy retrieval (and auto-update after re-pairing a device) of local_keys. Cloud API calls are performed only at startup, and when a local_key update is needed.**
 
 
-The following Tuya device types are currently supported:
+## Supported Device Types
+
+### Currently Supported
 * Switches
 * Lights
 * Covers
 * Fans
 * Climates
 * Vacuums
+* Sensors
+* Binary Sensors
+* Numbers
+* Selects
 
 Energy monitoring (voltage, current, watts, etc.) is supported for compatible devices.
 
+### Additional Device Support (Planned/In Progress)
+
+#### Water Quality Monitors (8-in-1 Testers)
+WiFi smart online water quality testers with the following sensors:
+
+| DP | Code | Description | Scale |
+|----|------|-------------|-------|
+| 8 | `temp_current` | Water Temperature (C) | 0.1 |
+| 106 | `ph_current` | pH Level | 0.01 |
+| 111 | `tds_current` | Total Dissolved Solids (ppm) | 1 |
+| 116 | `ec_current` | Electrical Conductivity (mS/cm) | 0.001 |
+| 121 | `salinity_current` | Salinity (ppm) | 1 |
+| 126 | `pro_current` | Specific Gravity (S.G) | - |
+| 131 | `orp_current` | Oxidation-Reduction Potential (mV) | 1 |
+| 136 | `cf_current` | Conductivity Factor (CF) | 0.01 |
+| 141 | `rh_current` | Relative Humidity (%) | 1 |
+
+Each parameter also has configurable high/low warning thresholds (e.g. DP 102/103 for temp, 107/108 for pH, etc.).
+
+#### Mini Hydroponics / Smart Garden Controllers
+Smart growing systems with pump, light, and timer control:
+
+| DP | Code | Description | Type |
+|----|------|-------------|------|
+| 101 | `switch` | Main Power | Switch |
+| 102 | `pump` | Water Pump | Switch |
+| 103 | `pump_timer` | Pump Schedule (Base64 encoded) | Raw |
+| 104 | `led` | Grow Light | Switch |
+| 105 | `led_model` | Light Mode (GROW, etc.) | Select |
+| 106 | `Countdown_set` | Timer Setting | Number |
+| 107 | `Countdown_countdown` | Timer Remaining | Sensor |
+
+#### Unsupported Sensor Types (from [tuya_unsupported_sensors](https://github.com/kattcrazy/tuya_unsupported_sensors))
+Read-only sensors not covered by the official Tuya integration:
+* Temperature / Humidity multi-sensors
+* Battery level sensors (numeric and state-based)
+* Door/window contact sensors
+* PIR motion sensors
+* Device online/connectivity status
+
+#### Other Device Categories Under Investigation
+* **Pet Feeders** -- meal scheduling (Raw DP), portion control, feeding history
+* **Robot Mowers** -- HA `lawn_mower` entity support, zone control, rain sensing
+* **Irrigation Controllers** -- multi-zone scheduling, weather delay, per-zone timing
+* **Air Quality Monitors** -- PM2.5, PM10, CO2, VOC, formaldehyde (multi-parameter)
+* **Smart Locks** -- lock/unlock, multiple unlock methods, door state, auto-lock
+* **Energy Monitors / Circuit Breakers** -- Raw Base64 DP decoding for voltage/current/power
+* **Pool/Spa Heat Pump Controllers** -- temperature control, fault monitoring, multi-zone
+
 > **Currently, Tuya protocols from 3.1 to 3.4 are supported.**
 
-This repository's development began as code from [@NameLessJedi](https://github.com/NameLessJedi), [@mileperhour](https://github.com/mileperhour) and [@TradeFace](https://github.com/TradeFace). Their code was then deeply refactored to provide proper integration with Home Assistant environment, adding config flow and other features. Refer to the "Thanks to" section below.
 
+# Installation
 
-# Installation:
-
-The easiest way, if you are using [HACS](https://hacs.xyz/), is to install LocalTuya through HACS.
+The easiest way, if you are using [HACS](https://hacs.xyz/), is to install through HACS.
 
 For manual installation, copy the localtuya folder and all of its contents into your Home Assistant's custom_components folder. This folder is usually inside your `/config` folder. If you are running Hass.io, use SAMBA to copy the folder over. If you are running Home Assistant Supervised, the custom_components folder might be located at `/usr/share/hassio/homeassistant`. You may need to create the `custom_components` folder and then copy the localtuya folder and all of its contents into it.
 
 
-# Usage:
+# Usage
 
 **NOTE: You must have your Tuya device's Key and ID in order to use LocalTuya. The easiest way is to configure the Cloud API account in the integration. If you choose not to do it, there are several ways to obtain the local_keys depending on your environment and the devices you own. A good place to start getting info is https://github.com/codetheweb/tuyapi/blob/master/docs/SETUP.md  or https://pypi.org/project/tinytuya/.**
 
@@ -60,7 +115,7 @@ The Client ID and Secret can be found at `Cloud > Development > Overview` and th
 
 ![project_date](https://github.com/rospogrigio/localtuya-homeassistant/blob/master/img/6-project_date.png)
 
-After pressing the Submit button, the first setup is complete and the Integration will be added. 
+After pressing the Submit button, the first setup is complete and the Integration will be added.
 
 > **Note: it is not mandatory to input the Cloud API credentials: you can choose to tick the "Do not configure a Cloud API account" button, and the Integration will be added anyway.**
 
@@ -83,7 +138,7 @@ You can then proceed Adding or Editing your Tuya devices.
 
 If you select to "Add or Edit a device", a drop-down menu will appear containing the list of detected devices (using auto-discovery if adding was selected, or the list of already configured devices if editing was selected): you can select one of these, or manually input all the parameters selecting the "..." option.
 
-> **Note: The tuya app on your device must be closed for the following steps to work reliably.**
+> **Note: The tuya app on your device must be closed for the following steps to work reliably.**
 
 
 ![discovery](https://github.com/rospogrigio/localtuya-homeassistant/blob/master/img/1-discovery.png)
@@ -92,7 +147,7 @@ If you have selected one entry, you only need to input the device's Friendly Nam
 
 Setting the scan interval is optional, it is only needed if energy/power values are not updating frequently enough by default. Values less than 10 seconds may cause stability issues.
 
-Setting the 'Manual DPS To Add' is optional, it is only needed if the device doesn't advertise the DPS correctly until the entity has been properly initiailised. This setting can often be avoided by first connecting/initialising the device with the Tuya App, then closing the app and then adding the device in the integration. **Note: Any DPS added using this option will have a -1 value during setup.** 
+Setting the 'Manual DPS To Add' is optional, it is only needed if the device doesn't advertise the DPS correctly until the entity has been properly initiailised. This setting can often be avoided by first connecting/initialising the device with the Tuya App, then closing the app and then adding the device in the integration. **Note: Any DPS added using this option will have a -1 value during setup.**
 
 Setting the 'DPIDs to send in RESET command' is optional. It is used when a device doesn't respond to any Tuya commands after a power cycle, but can be connected to (zombie state). This scenario mostly occurs when the device is blocked from accessing the internet. The DPids will vary between devices, but typically "18,19,20" is used. If the wrong entries are added here, then the device may not come out of the zombie state. Typically only sensor DPIDs entered here.
 
@@ -107,7 +162,7 @@ After you have defined all the needed entities, leave the "Do not add more entit
 ![entity_type](https://github.com/rospogrigio/localtuya-homeassistant/blob/master/img/3-entity_type.png)
 
 For each entity, the associated DP has to be selected. All the options requiring to select a DP will provide a drop-down menu showing
-all the available DPs found on the device (with their current status!!) for easy identification. 
+all the available DPs found on the device (with their current status!!) for easy identification.
 
 **Note: If your device requires an LocalTuya to send an initialisation value to the entity for it to work, this can be configured (in supported entities) through the 'Passive entity' option. Optionally you can specify the initialisation value to be sent**
 
@@ -122,9 +177,9 @@ Once you configure the entities, the procedure is complete. You can now associat
 
 # Migration from LocalTuya v.3.x.x
 
-If you upgrade LocalTuya from v3.x.x or older, the config entry will automatically be migrated to the new setup. Everything should work as it did before the upgrade, apart from the fact that in the Integration tab you will see just one LocalTuya integration (showing the number of devices and entities configured) instead of several Integrations grouped within the LocalTuya Box. This will happen both if the old configuration was done using YAML files and with the config flow. Once migrated, you can just input your Tuya IoT account credentials to enable the support for the Cloud API (and benefit from the local_key retrieval and auto-update): see [Configuration menu](https://github.com/rospogrigio/localtuya#integration-configuration-menu).
+If you upgrade LocalTuya from v3.x.x or older, the config entry will automatically be migrated to the new setup. Everything should work as it did before the upgrade, apart from the fact that in the Integration tab you will see just one LocalTuya integration (showing the number of devices and entities configured) instead of several Integrations grouped within the LocalTuya Box. This will happen both if the old configuration was done using YAML files and with the config flow. Once migrated, you can just input your Tuya IoT account credentials to enable the support for the Cloud API (and benefit from the local_key retrieval and auto-update): see [Configuration menu](https://github.com/ClermontDigital/ProperGoodTuya#integration-configuration-menu).
 
-If you had configured LocalTuya using YAML files, you can delete all its references from within the YAML files because they will no longer be considered so they might bring confusion (only the logger configuration part needs to be kept, of course, see [Debugging](https://github.com/rospogrigio/localtuya#debugging) ).
+If you had configured LocalTuya using YAML files, you can delete all its references from within the YAML files because they will no longer be considered so they might bring confusion (only the logger configuration part needs to be kept, of course, see [Debugging](https://github.com/ClermontDigital/ProperGoodTuya#debugging) ).
 
 
 # Energy monitoring values
@@ -198,25 +253,3 @@ Then, edit the device that is showing problems and check the "Enable debugging f
 # Notes:
 
 * Do not declare anything as "tuya", such as by initiating a "switch.tuya". Using "tuya" launches Home Assistant's built-in, cloud-based Tuya integration in lieu of localtuya.
-
-# To-do list:
-
-* Create a (good and precise) sensor (counter) for Energy (kWh) -not just Power, but based on it-.
-      Ideas: Use: https://www.home-assistant.io/integrations/integration/ and https://www.home-assistant.io/integrations/utility_meter/
-
-* Everything listed in https://github.com/rospogrigio/localtuya-homeassistant/issues/15
-
-# Thanks to:
-
-NameLessJedi https://github.com/NameLessJedi/localtuya-homeassistant and mileperhour https://github.com/mileperhour/localtuya-homeassistant being the major sources of inspiration, and whose code for switches is substantially unchanged.
-
-TradeFace, for being the only one to provide the correct code for communication with the cover (in particular, the 0x0d command for the status instead of the 0x0a, and related needs such as double reply to be received): https://github.com/TradeFace/tuya/
-
-sean6541, for the working (standard) Python Handler for Tuya devices.
-
-jasonacox, for the TinyTuya project from where I could import the code to communicate with devices using protocol 3.4.
-
-postlund, for the ideas, for coding 95% of the refactoring and boosting the quality of this repo to levels hard to imagine (by me, at least) and teaching me A LOT of how things work in Home Assistant.
-
-<a href="https://www.buymeacoffee.com/rospogrigio" target="_blank"><img src="https://bmc-cdn.nyc3.digitaloceanspaces.com/BMC-button-images/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
-<a href="https://paypal.me/rospogrigio" target="_blank"><img src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_37x23.jpg" border="0" alt="PayPal Logo" style="height: auto !important;width: auto !important;"></a>
