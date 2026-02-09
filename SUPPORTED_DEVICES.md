@@ -55,6 +55,34 @@ sensor:
 
 Note: Voltage and consumption values usually need scaling by 0.1. If energy values don't update frequently enough, set the scan interval (30 seconds recommended, minimum 10).
 
+## Smart Kettle DP Mappings
+
+Tuya WiFi smart kettles with temperature control and keep-warm functionality.
+
+| DP | Value (example) | Description | Entity Type |
+|----|----------------|-------------|-------------|
+| 1 | `False` | Power on/off | Switch |
+| 2 | `36` | Current temperature (°C) | Sensor |
+| 3 | `97` | Target temperature (°C) | Number |
+| 8 | `100` | Target temperature (°F scale) | Number |
+| 9 | `212` | Current temperature (°F scale) | Sensor |
+| 12 | `c` | Temperature unit (`c` / `f`) | Select |
+| 13 | `False` | Keep warm toggle | Switch |
+| 14 | `60` | Keep warm duration (minutes) | Number |
+| 15 | `standby` | Status (`standby`, `heating`, `keep_warm`) | Sensor |
+| 16 | `temp_setting` | Work mode (`temp_setting`, `boil`) | Select |
+| 18 | `0` | Fault code | Sensor |
+| 19 | `0` | Reserved / unknown | -- |
+
+**Recommended entity setup:**
+- **Switch** on DP 1 for power control
+- **Sensor** on DP 2 for current temperature (unit: °C, scaling if needed)
+- **Number** on DP 3 for target temperature
+- **Select** on DP 12 for temperature unit with options `c;f`
+- **Switch** on DP 13 for keep warm
+- **Number** on DP 14 for keep warm duration (minutes)
+- **Sensor** on DP 15 for device status
+
 ---
 
 ## Additional Device Support (Planned / In Progress)
