@@ -53,7 +53,7 @@
                 "description": "Options cannot be edited when configured via YAML."
             },
             "init": {
-                "title": "LocalTuya Configuration",
+                "title": "ProperGoodTuya Configuration",
                 "description": "Please select the desired action.",
                 "data": {
                     "add_device": "Add a new device",
@@ -213,7 +213,7 @@
     "services": {
         "reload": {
             "name": "Reload",
-            "description": "Reload localtuya and reconnect to all devices."
+            "description": "Reload ProperGoodTuya and reconnect to all devices."
         },
         "set_dp": {
             "name": "Set datapoint",
@@ -234,5 +234,5 @@
             }
         }
     },
-    "title": "LocalTuya"
+    "title": "ProperGoodTuya"
 }

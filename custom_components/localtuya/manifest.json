@@ -1,14 +1,14 @@
 {
   "domain": "localtuya",
-  "name": "LocalTuya integration",
+  "name": "ProperGoodTuya",
   "codeowners": [
-    "@rospogrigio", "@postlund"
+    "@ClermontDigital"
   ],
   "config_flow": true,
   "dependencies": [],
-  "documentation": "https://github.com/rospogrigio/localtuya/",
+  "documentation": "https://github.com/ClermontDigital/ProperGoodTuya",
   "iot_class": "local_push",
-  "issue_tracker": "https://github.com/rospogrigio/localtuya/issues",
+  "issue_tracker": "https://github.com/ClermontDigital/ProperGoodTuya/issues",
   "requirements": [],
   "version": "5.2.3"
 }

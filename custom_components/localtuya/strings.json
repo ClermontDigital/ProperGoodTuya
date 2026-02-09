@@ -39,8 +39,8 @@
     "options": {
         "step": {
             "init": {
-                "title": "LocalTuya Configuration",
-                "description": "Please select the desired actionSSSS.",
+                "title": "ProperGoodTuya Configuration",
+                "description": "Please select the desired action.",
                 "data": {
                     "add_device": "Add a new device",
                     "edit_device": "Edit a device",
@@ -135,5 +135,5 @@
             }
         }
     },
-    "title": "LocalTuya"
+    "title": "ProperGoodTuya"
 }

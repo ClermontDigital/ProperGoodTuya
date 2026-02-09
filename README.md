@@ -6,7 +6,7 @@ A Home Assistant custom integration for **local** handling of Tuya-based devices
 
 - Status updates via push (not polling) -- fast, even when manually operated
 - Tuya IoT Cloud API support for automatic local_key retrieval
-- Tuya protocols 3.1 through 3.4
+- Tuya protocols 3.1 through 3.5 (including AES-GCM encryption for 3.5)
 
 ## Supported Devices
 
@@ -17,7 +17,7 @@ See [SUPPORTED_DEVICES.md](SUPPORTED_DEVICES.md) for the full list including DP 
 ## Quick Start
 
 1. Install via [HACS](https://hacs.xyz/) or manually copy the `custom_components/localtuya` folder to your HA config
-2. Add the integration from **Settings > Integrations > + Add Integration > LocalTuya**
+2. Add the integration from **Settings > Integrations > + Add Integration > ProperGoodTuya**
 3. Configure your Tuya IoT Cloud API credentials (optional but recommended)
 4. Add your devices
 
@@ -26,7 +26,7 @@ See [GETTING_STARTED.md](GETTING_STARTED.md) for detailed installation, Cloud AP
 ## Key Notes
 
 - The Cloud API account is **not mandatory** but is strongly recommended for easy local_key retrieval and auto-update after re-pairing devices. Cloud API calls only happen at startup and when a key update is needed.
-- Do not declare anything as "tuya" (e.g. `switch.tuya`) -- this launches Home Assistant's built-in cloud-based Tuya integration instead of LocalTuya.
+- Do not declare anything as "tuya" (e.g. `switch.tuya`) -- this launches Home Assistant's built-in cloud-based Tuya integration instead of ProperGoodTuya.
 - If blocking device internet access, you must also block DNS requests. See [GETTING_STARTED.md](GETTING_STARTED.md#network-notes) for details.
 
 ## Debugging

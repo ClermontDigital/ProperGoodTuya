@@ -7,6 +7,7 @@ https://github.com/ct-Open-Source/tuya-convert/blob/master/scripts/tuya-discover
 import asyncio
 import json
 import logging
+import struct
 from hashlib import md5
 
 from cryptography.hazmat.backends import default_backend
@@ -30,6 +31,22 @@ def decrypt_udp(message):
     return _unpad(decryptor.update(message) + decryptor.finalize()).decode()
 
 
+def decrypt_6699(data):
+    """Decrypt 6699-format discovery broadcast."""
+    header_fmt = ">IHIII"
+    header_len = struct.calcsize(header_fmt)
+    _, _, _, _, payload_len = struct.unpack(header_fmt, data[:header_len])
+    iv = data[header_len : header_len + 12]
+    suffix_offset = header_len + payload_len - 4
+    tag = data[suffix_offset - 16 : suffix_offset]
+    encrypted = data[header_len + 12 : suffix_offset - 16]
+    aad = data[4:header_len]
+    cipher = Cipher(algorithms.AES(UDP_KEY), modes.GCM(iv, tag), default_backend())
+    decryptor = cipher.decryptor()
+    decryptor.authenticate_additional_data(aad)
+    return (decryptor.update(encrypted) + decryptor.finalize()).decode()
+
+
 class TuyaDiscovery(asyncio.DatagramProtocol):
     """Datagram handler listening for Tuya broadcast messages."""
 
@@ -48,9 +65,14 @@ class TuyaDiscovery(asyncio.DatagramProtocol):
         encrypted_listener = loop.create_datagram_endpoint(
             lambda: self, local_addr=("0.0.0.0", 6667), reuse_port=True
         )
+        listener_6699 = loop.create_datagram_endpoint(
+            lambda: self, local_addr=("0.0.0.0", 7000), reuse_port=True
+        )
 
-        self._listeners = await asyncio.gather(listener, encrypted_listener)
-        _LOGGER.debug("Listening to broadcasts on UDP port 6666 and 6667")
+        self._listeners = await asyncio.gather(
+            listener, encrypted_listener, listener_6699
+        )
+        _LOGGER.debug("Listening to broadcasts on UDP port 6666, 6667 and 7000")
 
     def close(self):
         """Stop discovery."""
@@ -60,14 +82,21 @@ class TuyaDiscovery(asyncio.DatagramProtocol):
 
     def datagram_received(self, data, addr):
         """Handle received broadcast message."""
-        data = data[20:-8]
         try:
-            data = decrypt_udp(data)
+            if data[:4] == b"\x00\x00\x66\x99":
+                # 6699 format (protocol 3.5, port 7000)
+                decoded = json.loads(decrypt_6699(data))
+            else:
+                # 55AA format (ports 6666/6667)
+                data = data[20:-8]
+                try:
+                    data = decrypt_udp(data)
+                except Exception:  # pylint: disable=broad-except
+                    data = data.decode()
+                decoded = json.loads(data)
+            self.device_found(decoded)
         except Exception:  # pylint: disable=broad-except
-            data = data.decode()
-
-        decoded = json.loads(data)
-        self.device_found(decoded)
+            _LOGGER.debug("Failed to decode discovery message from %s", addr)
 
     def device_found(self, device):
         """Discover a new device."""
