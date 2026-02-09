@@ -85,6 +85,42 @@ Tuya WiFi smart kettles with temperature control and keep-warm functionality.
 
 ---
 
+## Ceiling Fan + Light DP Mappings
+
+Tuya-based ceiling fan controllers with integrated light (e.g. Grid Connect, Deta, Arlec). Protocol 3.3.
+
+| DP | Value (example) | Description | Entity Type |
+|----|----------------|-------------|-------------|
+| 1 | `"1"` | Fan speed (`"1"` low, `"2"` medium, `"3"` high) | Fan |
+| 9 | `True` | Light on/off | Light |
+
+**Auto-profile:** When DPs 1 and 9 are detected, the "Ceiling Fan with Light" profile is offered for one-click setup.
+
+**Entity setup:**
+- **Fan** on DP 1 with speed control (ordered list: `1,2,3`)
+- **Light** on DP 9 for light on/off
+
+---
+
+## Roller Blind / Curtain Motor DP Mappings
+
+Tuya WiFi roller blind and curtain motors (e.g. Zemismart ZM25, generic Tuya tubular motors). Protocol 3.3.
+
+| DP | Value (example) | Description | Entity Type |
+|----|----------------|-------------|-------------|
+| 1 | `"open"` | Control command (`open`, `close`, `stop`) | Cover |
+| 2 | `50` | Set position (0-100) | Cover |
+| 3 | `50` | Current position (0-100, read-only) | Cover |
+| 5 | `"forward"` | Motor direction (`forward`, `back`) | -- |
+| 7 | `"opening"` | Work state (`opening`, `closing`) | -- |
+
+**Auto-profile:** When DPs 1, 2, 3, and 7 are detected, the "Roller Blind / Curtain Motor" profile is offered for one-click setup.
+
+**Entity setup:**
+- **Cover** on DP 1 with `open_close_stop` commands, position mode using DP 2 (set) and DP 3 (current)
+
+---
+
 ## Additional Device Support (Planned / In Progress)
 
 ### Water Quality Monitors (8-in-1 Testers)
