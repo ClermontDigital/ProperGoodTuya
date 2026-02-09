@@ -14,11 +14,6 @@ from homeassistant.const import (
 from .const import (
     CONF_COMMANDS_SET,
     CONF_CURRENT_POSITION_DP,
-    CONF_FAN_DPS_TYPE,
-    CONF_FAN_ORDERED_LIST,
-    CONF_FAN_SPEED_CONTROL,
-    CONF_FAN_SPEED_MAX,
-    CONF_FAN_SPEED_MIN,
     CONF_MAX_VALUE,
     CONF_MIN_VALUE,
     CONF_OPTIONS,
@@ -233,13 +228,8 @@ DEVICE_PROFILES = {
         "entities": [
             {
                 CONF_ID: 1,
-                CONF_PLATFORM: "fan",
+                CONF_PLATFORM: "switch",
                 CONF_FRIENDLY_NAME: "Fan",
-                CONF_FAN_SPEED_CONTROL: 1,
-                CONF_FAN_ORDERED_LIST: "1,2,3",
-                CONF_FAN_DPS_TYPE: "str",
-                CONF_FAN_SPEED_MIN: 1,
-                CONF_FAN_SPEED_MAX: 3,
                 CONF_RESTORE_ON_RECONNECT: False,
                 CONF_PASSIVE_ENTITY: False,
             },

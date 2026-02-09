@@ -91,14 +91,16 @@ Tuya-based ceiling fan controllers with integrated light (e.g. Grid Connect, Det
 
 | DP | Value (example) | Description | Entity Type |
 |----|----------------|-------------|-------------|
-| 1 | `"1"` | Fan speed (`"1"` low, `"2"` medium, `"3"` high) | Fan |
+| 1 | `True` | Fan on/off | Switch |
 | 9 | `True` | Light on/off | Light |
 
 **Auto-profile:** When DPs 1 and 9 are detected, the "Ceiling Fan with Light" profile is offered for one-click setup.
 
 **Entity setup:**
-- **Fan** on DP 1 with speed control (ordered list: `1,2,3`)
+- **Switch** on DP 1 for fan on/off
 - **Light** on DP 9 for light on/off
+
+Fan speed control DPs vary by model. After applying the profile, edit the device to add a fan entity with speed control if your device supports it.
 
 ---
 
