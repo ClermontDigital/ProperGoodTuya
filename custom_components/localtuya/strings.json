@@ -132,6 +132,13 @@
             "yaml_import": {
                 "title": "Not Supported",
                 "description": "Options cannot be edited when configured via YAML."
+            },
+            "choose_profile": {
+                "title": "Device Profile Detected",
+                "description": "A known device profile matches this device's datapoints. You can apply a pre-configured profile to automatically set up all entities, or configure them manually.",
+                "data": {
+                    "selected_profile": "Device Profile"
+                }
             }
         }
     },

@@ -27,6 +27,7 @@ from homeassistant.core import callback
 
 from .cloud_api import TuyaCloudApi
 from .common import pytuya
+from .device_profiles import DEVICE_PROFILES, PROFILE_MANUAL, match_profiles
 from .const import (
     ATTR_UPDATED_AT,
     CONF_ACTION,
@@ -58,6 +59,7 @@ ENTRIES_VERSION = 2
 PLATFORM_TO_ADD = "platform_to_add"
 NO_ADDITIONAL_ENTITIES = "no_additional_entities"
 SELECTED_DEVICE = "selected_device"
+CONF_SELECTED_PROFILE = "selected_profile"
 
 CUSTOM_DEVICE = "..."
 
@@ -403,6 +405,7 @@ class LocalTuyaOptionsFlowHandler(config_entries.OptionsFlow):
         self.selected_platform = None
         self.discovered_devices = {}
         self.entities = []
+        self.matched_profiles = []
 
     async def async_step_init(self, user_input=None):
         """Manage basic options."""
@@ -593,6 +596,16 @@ class LocalTuyaOptionsFlowHandler(config_entries.OptionsFlow):
                         return await self.async_step_configure_entity()
 
                 self.dps_strings = await validate_input(self.hass, user_input)
+                # Check for matching device profiles
+                detected_ids = set()
+                for dps_str in self.dps_strings:
+                    try:
+                        detected_ids.add(int(dps_str.split(" ")[0]))
+                    except (ValueError, IndexError):
+                        pass
+                self.matched_profiles = match_profiles(detected_ids)
+                if self.matched_profiles:
+                    return await self.async_step_choose_profile()
                 return await self.async_step_pick_entity_type()
             except CannotConnect:
                 errors["base"] = "cannot_connect"
@@ -648,6 +661,53 @@ class LocalTuyaOptionsFlowHandler(config_entries.OptionsFlow):
             data_schema=schema,
             errors=errors,
             description_placeholders=placeholders,
+        )
+
+    async def async_step_choose_profile(self, user_input=None):
+        """Handle choosing a device profile or manual configuration."""
+        if user_input is not None:
+            selected = user_input[CONF_SELECTED_PROFILE]
+
+            if selected == PROFILE_MANUAL:
+                return await self.async_step_pick_entity_type()
+
+            # Apply the selected profile
+            profile = DEVICE_PROFILES[selected]
+            self.entities = [entity.copy() for entity in profile["entities"]]
+
+            config = {
+                **self.device_data,
+                CONF_DPS_STRINGS: self.dps_strings,
+                CONF_ENTITIES: self.entities,
+            }
+
+            dev_id = self.device_data.get(CONF_DEVICE_ID)
+
+            new_data = self.config_entry.data.copy()
+            new_data[ATTR_UPDATED_AT] = str(int(time.time() * 1000))
+            new_data[CONF_DEVICES].update({dev_id: config})
+
+            self.hass.config_entries.async_update_entry(
+                self.config_entry,
+                data=new_data,
+            )
+            return self.async_create_entry(title="", data={})
+
+        # Build selection options
+        profile_options = {}
+        for key, profile in self.matched_profiles:
+            entity_count = len(profile["entities"])
+            profile_options[key] = f"{profile['name']} ({entity_count} entities)"
+
+        profile_options[PROFILE_MANUAL] = "Configure manually"
+
+        return self.async_show_form(
+            step_id="choose_profile",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONF_SELECTED_PROFILE): vol.In(profile_options),
+                }
+            ),
         )
 
     async def async_step_pick_entity_type(self, user_input=None):
