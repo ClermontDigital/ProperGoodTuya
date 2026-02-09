@@ -65,7 +65,7 @@ This allows the Cloud API to see all devices registered in your Tuya app.
 ## Adding the Integration
 
 1. In Home Assistant, go to **Settings > Devices & Services > + Add Integration**
-2. Search for **LocalTuya** and select it
+2. Search for **ProperGoodTuya** (or **LocalTuya**) and select it
 3. Enter your Cloud API credentials (or tick "Do not configure a Cloud API account" to skip)
 
 ![cloud_setup](https://github.com/rospogrigio/localtuya-homeassistant/blob/master/img/9-cloud_setup.png)
@@ -110,9 +110,13 @@ From here you can:
 
 ![device](https://github.com/rospogrigio/localtuya-homeassistant/blob/master/img/2-device.png)
 
-### Adding Entities
+### Device Profiles (Auto-Configuration)
 
-After the device is connected, add entities one at a time:
+If the detected DPs match a known device profile (e.g. smart kettle, ceiling fan + light, roller blind motor), you will be offered a **one-click auto-configuration** option. Select the matching profile to automatically create all entities, or choose "Configure manually" to set them up individually.
+
+### Adding Entities Manually
+
+If no profile matches, or you chose manual configuration, add entities one at a time:
 
 1. Select the entity type (switch, light, sensor, etc.)
 
