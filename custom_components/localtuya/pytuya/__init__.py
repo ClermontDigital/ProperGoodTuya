@@ -478,7 +478,7 @@ def pack_message_6699(msg, key):
         0,
         msg.seqno,
         msg.cmd,
-        12 + len(msg.payload) + 16 + 4,
+        12 + len(msg.payload) + 16,
     )
     aad = header[4:]
     gcm = GCMCipher(key)
@@ -496,7 +496,7 @@ def unpack_message_6699(data, key, header=None, logger=None):
             logger.debug("6699 unpack: not enough data to unpack payload")
         raise DecodeError("Not enough data to unpack 6699 payload")
     iv = data[header_len : header_len + 12]
-    payload_end = header_len + header.length - 4
+    payload_end = header_len + header.length
     tag = data[payload_end - 16 : payload_end]
     encrypted = data[header_len + 12 : payload_end - 16]
     suffix = struct.unpack(">I", data[payload_end : payload_end + 4])[0]
@@ -584,12 +584,12 @@ class MessageDispatcher(ContextualLogger):
                     self.debug("6699 header parse error, discarding buffer")
                     self.buffer = b""
                     break
-                if len(self.buffer) < header_len + header.length:
+                if len(self.buffer) < header_len + header.length + 4:
                     break
                 msg = unpack_message_6699(
                     self.buffer, self.local_key, header=header, logger=self
                 )
-                self.buffer = self.buffer[header_len + header.length :]
+                self.buffer = self.buffer[header_len + header.length + 4 :]
                 self._dispatch(msg)
             elif prefix == PREFIX_VALUE:
                 header_len = struct.calcsize(MESSAGE_RECV_HEADER_FMT)
@@ -916,7 +916,10 @@ class TuyaProtocol(asyncio.Protocol, ContextualLogger):
             return None
 
         # TODO: Verify stuff, e.g. CRC sequence number?
-        if real_cmd in [HEART_BEAT, CONTROL, CONTROL_NEW] and len(msg.payload) == 0:
+        # 3.5 ACKs still carry the 4-byte reserved/retcode field even with
+        # no real body, so an empty payload is <= 4 bytes on that version.
+        empty_len = 4 if self.version == 3.5 else 0
+        if real_cmd in [HEART_BEAT, CONTROL, CONTROL_NEW] and len(msg.payload) <= empty_len:
             # device may send messages with empty payload in response
             # to a HEART_BEAT or CONTROL or CONTROL_NEW command: consider them an ACK
             self.debug("ACK received for command %d: ignoring it", real_cmd)
@@ -1036,7 +1039,11 @@ class TuyaProtocol(asyncio.Protocol, ContextualLogger):
                 )
                 return self.error_json(ERR_PAYLOAD)
 
-        # 3.5 payloads are already decrypted by GCM in unpack_message_6699
+        # 3.5 payloads are already decrypted by GCM in unpack_message_6699,
+        # but still carry a leading 4-byte reserved/retcode field before
+        # the actual JSON body.
+        if self.version == 3.5 and len(payload) >= 4:
+            payload = payload[4:]
 
         if payload.startswith(PROTOCOL_VERSION_BYTES_31):
             # Received an encrypted payload
@@ -1130,7 +1137,10 @@ class TuyaProtocol(asyncio.Protocol, ContextualLogger):
         payload = rkey.payload
 
         if self.version == 3.5:
-            # 3.5: payload is already decrypted by unpack_message_6699
+            # 3.5: payload is already decrypted by unpack_message_6699.
+            # First 4 bytes are a reserved/retcode field, not part of the
+            # nonce+hmac body.
+            payload = payload[4:]
             self.debug(
                 "session key negotiation step 2 payload=%r", payload
             )
