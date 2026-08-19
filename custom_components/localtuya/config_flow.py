@@ -2,7 +2,6 @@
 import errno
 import logging
 import time
-from importlib import import_module
 
 import homeassistant.helpers.config_validation as cv
 import homeassistant.helpers.entity_registry as er
@@ -25,6 +24,18 @@ from homeassistant.const import (
 )
 from homeassistant.core import callback
 
+from . import (
+    binary_sensor,
+    climate,
+    cover,
+    fan,
+    light,
+    number,
+    select,
+    sensor,
+    switch,
+    vacuum,
+)
 from .cloud_api import TuyaCloudApi
 from .common import pytuya
 from .device_profiles import DEVICE_PROFILES, PROFILE_MANUAL, match_profiles
@@ -196,10 +207,23 @@ def platform_schema(platform, dps_strings, allow_id=True, yaml=False):
     return vol.Schema(schema).extend(flow_schema(platform, dps_strings))
 
 
+_PLATFORM_MODULES = {
+    "binary_sensor": binary_sensor,
+    "climate": climate,
+    "cover": cover,
+    "fan": fan,
+    "light": light,
+    "number": number,
+    "select": select,
+    "sensor": sensor,
+    "switch": switch,
+    "vacuum": vacuum,
+}
+
+
 def flow_schema(platform, dps_strings):
     """Return flow schema for a specific platform."""
-    integration_module = ".".join(__name__.split(".")[:-1])
-    return import_module("." + platform, integration_module).flow_schema(dps_strings)
+    return _PLATFORM_MODULES[platform].flow_schema(dps_strings)
 
 
 def strip_dps_values(user_input, dps_strings):
