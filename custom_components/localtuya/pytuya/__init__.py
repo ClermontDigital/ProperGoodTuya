@@ -501,6 +501,9 @@ def pack_message_6699(msg, key):
 
 
 def unpack_message_6699(data, key, header=None, logger=None):
+    # NOTE: not the inverse of pack_message_6699. Device->client frames always carry a
+    # 4-byte retcode at the head of the plaintext (stripped below); client->device frames
+    # we build never include one. A naive unpack(pack(x)) round-trip will lose 4 bytes.
     """Unpack bytes from 6699 protocol format into a TuyaMessage."""
     header_len = struct.calcsize(MESSAGE_HEADER_FMT_6699)
     if header is None:
