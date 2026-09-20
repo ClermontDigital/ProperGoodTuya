@@ -1,4 +1,4 @@
-![logo](https://github.com/rospogrigio/localtuya-homeassistant/blob/master/img/logo-small.png)
+![logo](img/logo-small.png)
 
 # ProperGoodTuya
 
@@ -7,12 +7,28 @@ A Home Assistant custom integration for **local** handling of Tuya-based devices
 - Status updates via push (not polling) -- fast, even when manually operated
 - Tuya IoT Cloud API support for automatic local_key retrieval
 - Tuya protocols 3.1 through 3.5 (including AES-GCM encryption for 3.5)
+  - Protocol 3.5 devices must currently be added **manually by IP**; auto-discovery
+    of 3.5 devices does not work yet (see issue #6)
 
 ## Supported Devices
 
 Switches, Lights, Covers, Fans, Climates, Vacuums, Sensors, Binary Sensors, Numbers, Selects -- plus energy monitoring for compatible devices.
 
 See [SUPPORTED_DEVICES.md](SUPPORTED_DEVICES.md) for the full list including DP mappings and planned device support (water quality monitors, hydroponics controllers, pet feeders, and more).
+
+## Installing alongside other LocalTuya forks
+
+> **Uninstall any other LocalTuya fork first.**
+
+ProperGoodTuya keeps the original `localtuya` domain, so it installs to the same
+`custom_components/localtuya/` directory as [rospogrigio/localtuya](https://github.com/rospogrigio/localtuya)
+and [xZetsubou/hass-localtuya](https://github.com/xZetsubou/hass-localtuya). Installing two of
+them silently overwrites the other - there is no warning, and which one you end up running
+depends on install order.
+
+Keeping the domain is deliberate: it means existing LocalTuya config entries and entity IDs
+keep working, so you do not have to re-add your devices. The trade-off is that this fork can
+only ever be installed as a HACS **custom repository**, never from the default HACS store.
 
 ## Quick Start
 

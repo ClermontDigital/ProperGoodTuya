@@ -40,7 +40,7 @@ Cloud API calls are only made at startup and when a local_key update is needed -
 2. Follow the official Home Assistant Tuya setup guide: https://www.home-assistant.io/integrations/tuya/
 3. Create a **Cloud Project** (must be created after May 25, 2021 for Tuya 2.0 compatibility)
 
-![project_date](https://github.com/rospogrigio/localtuya-homeassistant/blob/master/img/6-project_date.png)
+![project_date](img/6-project_date.png)
 
 ### Step 2: Get Your Credentials
 
@@ -49,7 +49,7 @@ You need three values from the Tuya IoT Platform:
 - **Client ID** and **Client Secret**: Found at `Cloud > Development > Overview`
 - **User ID**: Found in the "Link Tuya App Account" subtab within your Cloud project
 
-![user_id](https://github.com/rospogrigio/localtuya-homeassistant/blob/master/img/8-user_id.png)
+![user_id](img/8-user_id.png)
 
 ### Step 3: Link Your Tuya App Account
 
@@ -68,7 +68,7 @@ This allows the Cloud API to see all devices registered in your Tuya app.
 2. Search for **ProperGoodTuya** (or **LocalTuya**) and select it
 3. Enter your Cloud API credentials (or tick "Do not configure a Cloud API account" to skip)
 
-![cloud_setup](https://github.com/rospogrigio/localtuya-homeassistant/blob/master/img/9-cloud_setup.png)
+![cloud_setup](img/9-cloud_setup.png)
 
 4. Press **Submit** -- the integration is now added
 
@@ -80,11 +80,11 @@ This allows the Cloud API to see all devices registered in your Tuya app.
 
 After the integration is set up, press the **Configure** button on the integration card:
 
-![integration_configure](https://github.com/rospogrigio/localtuya-homeassistant/blob/master/img/10-integration_configure.png)
+![integration_configure](img/10-integration_configure.png)
 
 ### Configuration Menu
 
-![config_menu](https://github.com/rospogrigio/localtuya-homeassistant/blob/master/img/11-config_menu.png)
+![config_menu](img/11-config_menu.png)
 
 From here you can:
 - **Add or Edit a device** -- add new devices or modify existing ones
@@ -95,7 +95,7 @@ From here you can:
 1. Select "Add or Edit a device"
 2. Choose a discovered device from the dropdown, or select "..." to manually enter parameters
 
-![discovery](https://github.com/rospogrigio/localtuya-homeassistant/blob/master/img/1-discovery.png)
+![discovery](img/1-discovery.png)
 
 > **Important:** Close the Tuya app on your phone before proceeding -- it can interfere with local connections.
 
@@ -108,7 +108,7 @@ From here you can:
 
 4. Press **Submit** to test the connection
 
-![device](https://github.com/rospogrigio/localtuya-homeassistant/blob/master/img/2-device.png)
+![device](img/2-device.png)
 
 ### Device Profiles (Auto-Configuration)
 
@@ -120,17 +120,17 @@ If no profile matches, or you chose manual configuration, add entities one at a 
 
 1. Select the entity type (switch, light, sensor, etc.)
 
-![entity_type](https://github.com/rospogrigio/localtuya-homeassistant/blob/master/img/3-entity_type.png)
+![entity_type](img/3-entity_type.png)
 
 2. Select the DP (datapoint) for this entity -- the dropdown shows all available DPs with their current values
 
-![entity](https://github.com/rospogrigio/localtuya-homeassistant/blob/master/img/4-entity.png)
+![entity](img/4-entity.png)
 
 3. Configure entity-specific options
 4. Repeat for each entity you want to add
 5. When done, leave "Do not add more entities" checked and submit
 
-![success](https://github.com/rospogrigio/localtuya-homeassistant/blob/master/img/5-success.png)
+![success](img/5-success.png)
 
 ---
 

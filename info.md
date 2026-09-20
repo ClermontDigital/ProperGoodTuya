@@ -2,7 +2,7 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge)](https://github.com/hacs/integration)
 [![](https://img.shields.io/badge/MAINTAINER-%40ClermontDigital-green?style=for-the-badge)](https://github.com/ClermontDigital)
 
-![logo](https://github.com/rospogrigio/localtuya-homeassistant/blob/master/img/logo-small.png)
+![logo](img/logo-small.png)
 
 # ProperGoodTuya
 
