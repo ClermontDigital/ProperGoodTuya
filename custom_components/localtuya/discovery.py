@@ -37,14 +37,24 @@ def decrypt_6699(data):
     header_len = struct.calcsize(header_fmt)
     _, _, _, _, payload_len = struct.unpack(header_fmt, data[:header_len])
     iv = data[header_len : header_len + 12]
-    suffix_offset = header_len + payload_len - 4
-    tag = data[suffix_offset - 16 : suffix_offset]
-    encrypted = data[header_len + 12 : suffix_offset - 16]
+    # payload_len covers iv(12) + ciphertext + tag(16). The 4-byte suffix sits
+    # OUTSIDE it, so the payload ends at header_len + payload_len. Subtracting 4
+    # here shifted the window and read the GCM tag from the wrong 16 bytes, so
+    # authentication failed on every 3.5 discovery broadcast.
+    payload_end = header_len + payload_len
+    tag = data[payload_end - 16 : payload_end]
+    encrypted = data[header_len + 12 : payload_end - 16]
     aad = data[4:header_len]
     cipher = Cipher(algorithms.AES(UDP_KEY), modes.GCM(iv, tag), default_backend())
     decryptor = cipher.decryptor()
     decryptor.authenticate_additional_data(aad)
-    return (decryptor.update(encrypted) + decryptor.finalize()).decode()
+    decrypted = decryptor.update(encrypted) + decryptor.finalize()
+    # TCP frames always carry a 4-byte retcode ahead of the JSON, but discovery
+    # broadcasts may not, so detect it rather than stripping unconditionally -
+    # the same heuristic tinytuya's decrypt_udp applies.
+    if not decrypted.startswith(b"{") and decrypted[4:5] == b"{":
+        decrypted = decrypted[4:]
+    return decrypted.decode()
 
 
 class TuyaDiscovery(asyncio.DatagramProtocol):

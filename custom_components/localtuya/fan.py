@@ -226,9 +226,23 @@ class LocaltuyaFan(LocalTuyaEntity, FanEntity):
                 self._ordered_list,
             )
             if current_speed is not None:
-                self._percentage = ordered_list_item_to_percentage(
-                    self._ordered_list, str(current_speed)
-                )
+                # ordered_list_item_to_percentage raises ValueError when the item is
+                # not in the list, and this runs inside the dispatcher, which swallows
+                # the exception - so schedule_update_ha_state() below never runs and the
+                # entity silently freezes at its last value instead of going
+                # unavailable. Check membership rather than relying on the exception.
+                speed_item = str(current_speed)
+                if speed_item in self._ordered_list:
+                    self._percentage = ordered_list_item_to_percentage(
+                        self._ordered_list, speed_item
+                    )
+                else:
+                    _LOGGER.warning(
+                        "Fan reported speed %r which is not in the configured "
+                        "fan_speed_ordered_list %s - ignoring this speed update",
+                        speed_item,
+                        self._ordered_list,
+                    )
 
         else:
             _LOGGER.debug(
@@ -237,9 +251,19 @@ class LocaltuyaFan(LocalTuyaEntity, FanEntity):
                 self._speed_range,
             )
             if current_speed is not None:
-                self._percentage = ranged_value_to_percentage(
-                    self._speed_range, int(current_speed)
-                )
+                # int() raises ValueError/TypeError on a non-numeric speed, with the
+                # same silent-freeze consequence as the ordered-list branch above.
+                try:
+                    self._percentage = ranged_value_to_percentage(
+                        self._speed_range, int(current_speed)
+                    )
+                except (ValueError, TypeError):
+                    _LOGGER.warning(
+                        "Fan reported non-numeric speed %r for range %s - ignoring "
+                        "this speed update",
+                        current_speed,
+                        self._speed_range,
+                    )
 
         _LOGGER.debug("Fan current_percentage: %s", self._percentage)
 
