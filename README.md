@@ -6,9 +6,7 @@ A Home Assistant custom integration for **local** handling of Tuya-based devices
 
 - Status updates via push (not polling) -- fast, even when manually operated
 - Tuya IoT Cloud API support for automatic local_key retrieval
-- Tuya protocols 3.1 through 3.5 (including AES-GCM encryption for 3.5)
-  - Protocol 3.5 devices must currently be added **manually by IP**; auto-discovery
-    of 3.5 devices does not work yet (see issue #6)
+- Tuya protocols 3.1 through 3.5 (including AES-GCM encryption for 3.5), with auto-discovery on all of them
 
 ## Supported Devices
 
