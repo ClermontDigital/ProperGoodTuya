@@ -478,7 +478,7 @@ def pack_message_6699(msg, key):
         0,
         msg.seqno,
         msg.cmd,
-        12 + len(msg.payload) + 16 + 4,
+        12 + len(msg.payload) + 16,  # suffix NOT included in length field (matches Tuya device expectation)
     )
     aad = header[4:]
     gcm = GCMCipher(key)
@@ -491,12 +491,12 @@ def unpack_message_6699(data, key, header=None, logger=None):
     header_len = struct.calcsize(MESSAGE_HEADER_FMT_6699)
     if header is None:
         header = parse_header_6699(data)
-    if len(data) < header_len + header.length:
+    if len(data) < header_len + header.length + 4:  # +4 for trailing suffix
         if logger:
             logger.debug("6699 unpack: not enough data to unpack payload")
         raise DecodeError("Not enough data to unpack 6699 payload")
     iv = data[header_len : header_len + 12]
-    payload_end = header_len + header.length - 4
+    payload_end = header_len + header.length  # trailing suffix is separate, not inside plen
     tag = data[payload_end - 16 : payload_end]
     encrypted = data[header_len + 12 : payload_end - 16]
     suffix = struct.unpack(">I", data[payload_end : payload_end + 4])[0]
@@ -513,7 +513,12 @@ def unpack_message_6699(data, key, header=None, logger=None):
             logger.debug("6699 GCM decryption/authentication failed")
         decrypted = b""
         crc_good = False
-    return TuyaMessage(header.seqno, header.cmd, 0, decrypted, tag, crc_good)
+    # Strip 4-byte retcode prefix from responses (device always includes it, like 55AA format)
+    retcode = 0
+    if len(decrypted) >= 4:
+        retcode = struct.unpack(">I", decrypted[:4])[0]
+        decrypted = decrypted[4:]
+    return TuyaMessage(header.seqno, header.cmd, retcode, decrypted, tag, crc_good)
 
 
 class MessageDispatcher(ContextualLogger):
@@ -584,12 +589,12 @@ class MessageDispatcher(ContextualLogger):
                     self.debug("6699 header parse error, discarding buffer")
                     self.buffer = b""
                     break
-                if len(self.buffer) < header_len + header.length:
+                if len(self.buffer) < header_len + header.length + 4:  # +4 for trailing 6699 suffix
                     break
                 msg = unpack_message_6699(
                     self.buffer, self.local_key, header=header, logger=self
                 )
-                self.buffer = self.buffer[header_len + header.length :]
+                self.buffer = self.buffer[header_len + header.length + 4:]  # +4 for trailing suffix
                 self._dispatch(msg)
             elif prefix == PREFIX_VALUE:
                 header_len = struct.calcsize(MESSAGE_RECV_HEADER_FMT)
