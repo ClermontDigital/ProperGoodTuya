@@ -220,14 +220,26 @@ payload_dict = {
             "command_override": CONTROL_NEW,  # Uses CONTROL_NEW command
             "command": {"protocol": 5, "t": "int", "data": ""},
         },
-        DP_QUERY: {"command_override": DP_QUERY_NEW},
+        DP_QUERY: {
+            "command_override": DP_QUERY_NEW,
+            "command": {},
+        },
+        DP_QUERY_NEW: {
+            "command": {},
+        },
     },
     "v3.5": {
         CONTROL: {
             "command_override": CONTROL_NEW,
             "command": {"protocol": 5, "t": "int", "data": ""},
         },
-        DP_QUERY: {"command_override": DP_QUERY_NEW},
+        DP_QUERY: {
+            "command_override": DP_QUERY_NEW,
+            "command": {},
+        },
+        DP_QUERY_NEW: {
+            "command": {},
+        },
     },
 }
 
@@ -478,7 +490,9 @@ def pack_message_6699(msg, key):
         0,
         msg.seqno,
         msg.cmd,
-        12 + len(msg.payload) + 16,  # suffix NOT included in length field (matches Tuya device expectation)
+        # length covers iv(12) + ciphertext + tag(16); the 4-byte suffix is
+        # outside it, matching tinytuya and what the device expects.
+        12 + len(msg.payload) + 16,
     )
     aad = header[4:]
     gcm = GCMCipher(key)
@@ -594,7 +608,7 @@ class MessageDispatcher(ContextualLogger):
                 msg = unpack_message_6699(
                     self.buffer, self.local_key, header=header, logger=self
                 )
-                self.buffer = self.buffer[header_len + header.length + 4:]  # +4 for trailing suffix
+                self.buffer = self.buffer[header_len + header.length + 4 :]  # +4 for trailing suffix
                 self._dispatch(msg)
             elif prefix == PREFIX_VALUE:
                 header_len = struct.calcsize(MESSAGE_RECV_HEADER_FMT)

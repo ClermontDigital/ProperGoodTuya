@@ -2,7 +2,6 @@
 import errno
 import logging
 import time
-from importlib import import_module
 
 import homeassistant.helpers.config_validation as cv
 import homeassistant.helpers.entity_registry as er
@@ -24,6 +23,19 @@ from homeassistant.const import (
     CONF_USERNAME,
 )
 from homeassistant.core import callback
+
+from . import (
+    binary_sensor,
+    climate,
+    cover,
+    fan,
+    light,
+    number,
+    select,
+    sensor,
+    switch,
+    vacuum,
+)
 
 from .cloud_api import TuyaCloudApi
 from .common import pytuya
@@ -196,10 +208,32 @@ def platform_schema(platform, dps_strings, allow_id=True, yaml=False):
     return vol.Schema(schema).extend(flow_schema(platform, dps_strings))
 
 
+# Platform modules are imported statically above so no import happens on the event
+# loop during a config flow. HA's blocking-call detector flags import_module() here
+# because it checks the relative name ".switch", which is never a sys.modules key.
+_PLATFORM_MODULES = {
+    "binary_sensor": binary_sensor,
+    "climate": climate,
+    "cover": cover,
+    "fan": fan,
+    "light": light,
+    "number": number,
+    "select": select,
+    "sensor": sensor,
+    "switch": switch,
+    "vacuum": vacuum,
+}
+
+
 def flow_schema(platform, dps_strings):
     """Return flow schema for a specific platform."""
-    integration_module = ".".join(__name__.split(".")[:-1])
-    return import_module("." + platform, integration_module).flow_schema(dps_strings)
+    module = _PLATFORM_MODULES.get(platform)
+    if module is None:
+        raise ValueError(
+            f"Unknown localtuya platform {platform!r}; "
+            f"expected one of {sorted(_PLATFORM_MODULES)}"
+        )
+    return module.flow_schema(dps_strings)
 
 
 def strip_dps_values(user_input, dps_strings):
