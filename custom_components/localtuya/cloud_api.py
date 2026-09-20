@@ -10,6 +10,10 @@ import requests
 
 _LOGGER = logging.getLogger(__name__)
 
+# Without a timeout a half-open socket to Tuya's cloud hangs indefinitely, which
+# stalls async_setup_entry or permanently wedges a device's connect task.
+CLOUD_TIMEOUT = 15
+
 
 # Signature algorithm.
 def calc_sign(msg, key):
@@ -77,7 +81,10 @@ class TuyaCloudApi:
 
         if method == "GET":
             func = functools.partial(
-                requests.get, full_url, headers=dict(default_par, **headers)
+                requests.get,
+                full_url,
+                headers=dict(default_par, **headers),
+                timeout=CLOUD_TIMEOUT,
             )
         elif method == "POST":
             func = functools.partial(
@@ -85,6 +92,7 @@ class TuyaCloudApi:
                 full_url,
                 headers=dict(default_par, **headers),
                 data=json.dumps(body),
+                timeout=CLOUD_TIMEOUT,
             )
             # _LOGGER.debug("BODY: [%s]", body)
         elif method == "PUT":
@@ -93,6 +101,7 @@ class TuyaCloudApi:
                 full_url,
                 headers=dict(default_par, **headers),
                 data=json.dumps(body),
+                timeout=CLOUD_TIMEOUT,
             )
 
         resp = await self._hass.async_add_executor_job(func)
@@ -107,7 +116,7 @@ class TuyaCloudApi:
             return "Request failed, status ConnectionError"
 
         if not resp.ok:
-            return "Request failed, status " + str(resp.status)
+            return "Request failed, status " + str(resp.status_code)
 
         r_json = resp.json()
         if not r_json["success"]:
@@ -123,7 +132,7 @@ class TuyaCloudApi:
         )
 
         if not resp.ok:
-            return "Request failed, status " + str(resp.status)
+            return "Request failed, status " + str(resp.status_code)
 
         r_json = resp.json()
         if not r_json["success"]:

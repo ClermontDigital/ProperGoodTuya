@@ -120,7 +120,7 @@ class LocaltuyaVacuum(LocalTuyaEntity, StateVacuumEntity):
         if self.has_config(CONF_FAN_SPEED_DP):
             supported_features = supported_features | VacuumEntityFeature.FAN_SPEED
         if self.has_config(CONF_BATTERY_DP):
-            supported_features = supported_features | VacuumEntityFeature.BATTERY
+            supported_features = supported_features
         if self.has_config(CONF_LOCATE_DP):
             supported_features = supported_features | VacuumEntityFeature.LOCATE
 

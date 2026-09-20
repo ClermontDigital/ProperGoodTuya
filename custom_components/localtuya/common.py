@@ -1,5 +1,6 @@
 """Code shared between all platforms."""
 import asyncio
+import contextlib
 import json.decoder
 import logging
 import time
@@ -307,7 +308,13 @@ class TuyaDevice(pytuya.TuyaListener, pytuya.ContextualLogger):
         self._is_closing = True
         if self._connect_task is not None:
             self._connect_task.cancel()
-            await self._connect_task
+            # Awaiting a task we just cancelled re-raises CancelledError, a
+            # BaseException. HA's ConfigEntry.async_unload only catches Exception, so it
+            # escapes and the entry is left in UNLOAD_IN_PROGRESS, whose state is not
+            # recoverable - every later unload/reload is then refused for the life of
+            # the process. That is the "only an HA restart clears it" reload wedge.
+            with contextlib.suppress(asyncio.CancelledError):
+                await self._connect_task
         if self._interface is not None:
             await self._interface.close()
         if self._disconnect_task is not None:
@@ -418,6 +425,7 @@ class LocalTuyaEntity(RestoreEntity, pytuya.ContextualLogger):
         if state:
             self.status_restored(state)
 
+        @callback
         def _update_handler(status):
             """Update entity state when status was updated."""
             if status is None:

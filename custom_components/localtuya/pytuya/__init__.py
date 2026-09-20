@@ -623,6 +623,13 @@ class MessageDispatcher(ContextualLogger):
                     self.debug("55AA header parse error, discarding buffer")
                     self.buffer = b""
                     break
+                # The 6699 branch above checks the whole payload has arrived before
+                # unpacking; this one did not. unpack_message raises DecodeError on a
+                # partial payload, which escapes data_received - asyncio treats that as
+                # fatal and closes the transport, so a TCP segment boundary in the
+                # middle of a status message dropped the device.
+                if len(self.buffer) < header_len - 4 + header.length:
+                    break
                 hmac_key = self.local_key if self.version == 3.4 else None
                 msg = unpack_message(
                     self.buffer, header=header, hmac_key=hmac_key, logger=self
@@ -881,7 +888,7 @@ class TuyaProtocol(asyncio.Protocol, ContextualLogger):
             self.transport.write(enc_payload)
         except Exception:
             # self._check_socket_close(True)
-            self.close()
+            await self.close()
             return None
         while recv_retries:
             try:

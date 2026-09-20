@@ -8,6 +8,7 @@ import homeassistant.util.color as color_util
 import voluptuous as vol
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
+    ATTR_COLOR_TEMP_KELVIN,
     ATTR_EFFECT,
     ATTR_HS_COLOR,
     DOMAIN,
@@ -224,32 +225,42 @@ class LocaltuyaLight(LocalTuyaEntity, LightEntity):
         return None
 
     @property
-    def color_temp(self):
-        """Return the color_temp of the light."""
+    def color_temp_kelvin(self):
+        """Return the color temperature of the light in Kelvin.
+
+        HA removed color_temp/min_mireds/max_mireds in 2026.3, so the Kelvin
+        properties are the only ones read now. The device itself works in its own
+        scale, so the existing mired maths is kept and converted at the boundary.
+        """
         if self.has_config(CONF_COLOR_TEMP) and self.is_white_mode:
             color_temp_value = (
                 self._upper_color_temp - self._color_temp
                 if self._color_temp_reverse
                 else self._color_temp
             )
-            return int(
+            mired = int(
                 self._max_mired
                 - (
                     ((self._max_mired - self._min_mired) / self._upper_color_temp)
                     * color_temp_value
                 )
             )
+            if mired <= 0:
+                return None
+            return color_util.color_temperature_mired_to_kelvin(mired)
         return None
 
     @property
-    def min_mireds(self):
-        """Return color temperature min mireds."""
-        return self._min_mired
+    def min_color_temp_kelvin(self):
+        """Return the coldest color_temp_kelvin that this light supports."""
+        # Fewer mireds is a cooler (higher Kelvin) light, so the *max* mired maps
+        # to the *min* Kelvin.
+        return color_util.color_temperature_mired_to_kelvin(self._max_mired)
 
     @property
-    def max_mireds(self):
-        """Return color temperature max mireds."""
-        return self._max_mired
+    def max_color_temp_kelvin(self):
+        """Return the warmest color_temp_kelvin that this light supports."""
+        return color_util.color_temperature_mired_to_kelvin(self._min_mired)
 
     @property
     def effect(self):
@@ -261,11 +272,7 @@ class LocaltuyaLight(LocalTuyaEntity, LightEntity):
     @property
     def effect_list(self):
         """Return the list of supported effects for this light."""
-        if self.is_scene_mode or self.is_music_mode:
-            return self._effect
-        elif (color_mode := self.__get_color_mode()) in self._scenes.values():
-            return self.__find_scene_by_scene_data(color_mode)
-        return None
+        return self._effect_list or None
 
     @property
     def supported_color_modes(self) -> set[ColorMode] | set[str] | None:
@@ -429,10 +436,19 @@ class LocaltuyaLight(LocalTuyaEntity, LightEntity):
                 states[self._config.get(CONF_COLOR)] = color
                 states[self._config.get(CONF_COLOR_MODE)] = MODE_COLOR
 
-        if ColorMode.COLOR_TEMP in kwargs and ColorMode.COLOR_TEMP in self.supported_color_modes:
+        if (
+            ATTR_COLOR_TEMP_KELVIN in kwargs
+            and ColorMode.COLOR_TEMP in self.supported_color_modes
+        ):
             if brightness is None:
                 brightness = self._brightness
-            mired = int(kwargs[ColorMode.COLOR_TEMP])
+            # Before HA 2026.3 the light component also passed a mired value under the
+            # key "color_temp"; it now passes Kelvin only, so convert here.
+            mired = int(
+                color_util.color_temperature_kelvin_to_mired(
+                    kwargs[ATTR_COLOR_TEMP_KELVIN]
+                )
+            )
             if self._color_temp_reverse:
                 mired = self._max_mired - (mired - self._min_mired)
             if mired < self._min_mired:
